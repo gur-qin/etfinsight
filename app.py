@@ -19,8 +19,6 @@ with tab2:
 
 # --- Tab 3 内容 ---
 with tab3:
- # --- Tab 3 内容 (完整逻辑版) ---
-with tab3:
     st.subheader("动量强弱排序")
     input_codes = st.text_input("输入ETF代码(用逗号隔开)", "510300, 510500, 512100, 512880, 513100")
     code_list = [c.strip() for c in input_codes.split(',')]
