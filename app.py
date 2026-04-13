@@ -30,13 +30,32 @@ backtest_codes = st.sidebar.text_input("回测组合(代码用逗号隔开)", "5
 days = st.sidebar.selectbox("回测时长", [180, 365, 730], index=1)
 
 tab1, tab2 = st.tabs(["🔥 实时风险预警", "📈 策略回测中心"])
-
 # --- Tab 1: 实时预警逻辑 ---
-with tab1:
-    st.subheader("高溢价 ETF 实时雷达")
-    with st.spinner("正在扫描全市场数据..."):
-        all_data = load_all_etf_spot()
-        # 过滤出高溢价
+    with tab1:
+        st.subheader("高溢价 ETF 实时雷达")
+        with st.spinner("正在扫描全市场数据..."):
+            all_data = load_all_etf_spot()
+            
+            # 自动识别折价率相关的列名
+            target_col = '折价率'
+            if target_col not in all_data.columns:
+                possible_cols = [c for c in all_data.columns if '折价' in c or '溢价' in c]
+                if possible_cols:
+                    target_col = possible_cols[0]
+                else:
+                    st.error(f"无法找到相关列，当前列名有: {all_data.columns.tolist()}")
+                    st.stop()
+            
+            # 使用正确的列名进行筛选
+            high_premium = all_data[all_data[target_col].astype(float) > premium_threshold].copy()
+            
+            if not high_premium.empty:
+                st.error(f"警告：检测到 {len(high_premium)} 只标的处于高溢价状态！")
+                st.dataframe(high_premium[['代码', '名称', '最新价', target_col, '成交额']], use_container_width=True)
+                st.info("💡 建议：溢价率过高时，请关注折算风险。")
+            else:
+                st.success("全市场主流 ETF 溢价水平暂处于安全区间。")
+
        with st.spinner("正在扫描全市场数据..."):
         all_data = load_all_etf_spot()
         
