@@ -37,7 +37,25 @@ with tab1:
     with st.spinner("正在扫描全市场数据..."):
         all_data = load_all_etf_spot()
         # 过滤出高溢价
-        high_premium = all_data[all_data['折价率'] > premium_threshold].copy()
+       with st.spinner("正在扫描全市场数据..."):
+        all_data = load_all_etf_spot()
+        
+        # --- 调试代码：如果你报错，请查看网页上显示的列名 ---
+        # st.write("当前表格列名:", all_data.columns.tolist()) 
+        
+        # 常见列名可能是 '溢价率' 而不是 '折价率'，或者名字有细微差别
+        # 让我们尝试自动寻找包含“溢价”或“折价”的列
+        col_name = '折价率'
+        if '折价率' not in all_data.columns:
+            # 如果找不到，尝试查找包含“溢价”的列
+            possible_cols = [c for c in all_data.columns if '溢价' in c or '折价' in c]
+            if possible_cols:
+                col_name = possible_cols[0]
+            else:
+                st.error(f"无法找到溢价/折价相关列，当前列名有: {all_data.columns.tolist()}")
+        
+        # 使用找到的列名进行筛选
+        high_premium = all_data[all_data[col_name].astype(float) > premium_threshold].copy() 
         
     if not high_premium.empty:
         st.error(f"警告：检测到 {len(high_premium)} 只标的处于高溢价状态！")
